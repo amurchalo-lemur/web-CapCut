@@ -1,28 +1,40 @@
 package org.example;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.file.Path;
+import okhttp3.*;
+
+import java.io.File;
+import java.io.IOException;
 
 public class TodoClient {
-    private final String URL = "";
-    private final HttpClient client;
 
-    public TodoClient() {
-        client = HttpClient.newHttpClient();
-    }
+    public void request() {
 
-    public void request() throws Exception {
-        Path filePath = Path.of("C:/videos/sample.mp4");
+        String serverUrl = "https://example.com/upload";
+        File videoFile = new File("path/to/video.mp4");
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL))
-                .header("Content-Type", "video/mp4") // указываем тип данных
-                .POST(HttpRequest.BodyPublishers.ofFile(filePath))
+        OkHttpClient client = new OkHttpClient();
+
+        MediaType MEDIA_TYPE_MP4 = MediaType.get("video/mp4");
+
+        RequestBody requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", videoFile.getName(), RequestBody.create(videoFile, MEDIA_TYPE_MP4))
+                .addFormDataPart("description", "Test mp4 upload")
                 .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        Request request = new Request.Builder()
+                .url(serverUrl)
+                .post(requestBody)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Запрос не успешен: " +
+                        response.code() + " " + response.message());
+            }
+            System.out.println("Ответ сервера: " + response.body().string());
+        } catch (IOException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
     }
 }

@@ -7,10 +7,6 @@ import java.net.http.HttpTimeoutException;
 public class Main {
     public static void main(String[] args) {
         TodoClient client = new TodoClient();
-        try {
-            client.request();
-        }catch (Exception e){
-            e.getMessage();
-        }
+        client.request();
     }
 }
